@@ -2,9 +2,31 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.skanderjabouzi.wifidetect">
 
+    <permission android:name="com.skanderjabouzi.wifi.SEND_LOCATION_NOTIFICATIONS"
+        android:label="@string/send_location_notifications_permission_label"
+        android:description="@string/send_location_notifications_permission_description"
+        android:permissionGroup="android.permission-group.PERSONAL_INFO"
+        android:protectionLevel="normal" />
+
+    <permission android:name="com.skanderjabouzi.wifi.RECEIVE_LOCATION_NOTIFICATIONS"
+        android:label="@string/receive_location_notifications_permission_label"
+        android:description="@string/receive_location_notifications_permission_description"
+        android:permissionGroup="android.permission-group.PERSONAL_INFO"
+        android:protectionLevel="normal" />
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-permission android:name="com.skanderjabouzi.wifi.SEND_LOCATION_NOTIFICATIONS" />
+    <uses-permission android:name="com.skanderjabouzi.wifi.RECEIVE_LOCATION_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -15,6 +37,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver android:name="com.skanderjabouzi.wifidetect.WifiReceiver">
+            <intent-filter>
+                <action android:name="android.net.wifi.SCAN_RESULTS" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.skanderjabouzi.wifidetect.WifiService" android:enabled="true"/>
+
     </application>
 
 </manifest>
