@@ -1,5 +1,7 @@
 package com.skanderjabouzi.wifidetect;
 
+import android.*;
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -24,12 +26,14 @@ import android.widget.Toast;
 import 	android.support.v4.content.ContextCompat;
 import android.content.pm.PackageManager;
 
+import static android.support.v4.app.ActivityCompat.requestPermissions;
+
 /**
  * Created by skanderjabouzi on 2016-09-11.
  */
 public class WifiService extends Service implements LocationListener{
 
-    private static final String TAG = "LocationService";
+    private static final String TAG = "WIFI SERVICE";
     public static final String LOCATION_INTENT = "com.skanderjabouzi.wifi.LOCATION_INTENT";
     public static final String LOCATION = "LOCATION";
     public static final String RECEIVE_LOCATION_NOTIFICATIONS = "com.skanderjabouzi.wifi.RECEIVE_LOCATION_NOTIFICATIONS";
@@ -48,8 +52,8 @@ public class WifiService extends Service implements LocationListener{
     private Runnable mUpdateTimeTask;
     private LocationDataSource ldatasource;
     private com.skanderjabouzi.wifidetect.Location wifiLocation;
-    private static final int MY_PERMISSION_ACCESS_COARSE_LOCATION = 11;
-    private static final int MY_PERMISSION_ACCESS_FINE_LOCATION = 12;
+    public String bestProvider;
+    public Criteria criteria;
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -58,6 +62,7 @@ public class WifiService extends Service implements LocationListener{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+//        Log.i(TAG,"onStartCommand" );
         ldatasource = new LocationDataSource(this);
         ldatasource.open();
         getLocation();
@@ -65,22 +70,28 @@ public class WifiService extends Service implements LocationListener{
     }
 
     public void getLocation() {
-
+//        Log.i(TAG,"getLocation" );
         try {
+            criteria = new Criteria();
             locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
             isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
 
             if (!isGPSEnabled && !isNetworkEnabled) {
-
+//                Log.i(TAG,"GSP AND INTERNET DISBLED" );
+                sendNotification("GEO_INTERNET_DISABLED");
             }
             else
             {
+//                Log.i(TAG,"GSP AND INTERNET ENABLED" );
                 if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                     this.canGetLocation = true;
                     if (isNetworkEnabled) {
+//                        Log.i(TAG,"NetworkEnabled");
                         locationManager.requestLocationUpdates(
                                 LocationManager.NETWORK_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
@@ -90,11 +101,19 @@ public class WifiService extends Service implements LocationListener{
                             if (location != null) {
                                 latitude = location.getLatitude();
                                 longitude = location.getLongitude();
+//                                Log.i(TAG,"LATITUDE1 : " + String.valueOf(location.getLatitude()));
+//                                Log.i(TAG,"LONGITUDE1 : " + String.valueOf(location.getLongitude()));
+                            }
+                            else
+                            {
+//                                Log.i(TAG,"LOCATION1 IS NULL");
+                                locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
                             }
                         }
                     }
 
                     if (isGPSEnabled) {
+//                        Log.i(TAG,"GPSEnabled");
                         if (location == null) {
                             locationManager.requestLocationUpdates(
                                     LocationManager.GPS_PROVIDER,
@@ -105,10 +124,27 @@ public class WifiService extends Service implements LocationListener{
                                 if (location != null) {
                                     latitude = location.getLatitude();
                                     longitude = location.getLongitude();
+//                                    Log.i(TAG,"LATITUDE2 : " + String.valueOf(location.getLatitude()));
+//                                    Log.i(TAG,"LONGITUDE2 : " + String.valueOf(location.getLongitude()));
                                 }
                             }
                         }
+                        else
+                        {
+//                            Log.i(TAG,"LOCATION2 IS NULL");
+                            locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
+                        }
                     }
+
+                    String locationValues = String.valueOf(location.getLatitude());
+                    locationValues += "|" + String.valueOf(location.getLongitude());
+                    sendNotification(locationValues);
+                }
+                else
+                {
+                    sendNotification("PERMISSION_NOT_GRANTED" );
+
+                    return;
                 }
             }
         }
@@ -118,9 +154,6 @@ public class WifiService extends Service implements LocationListener{
             e.printStackTrace();
         }
 
-        String locationValues = String.valueOf(location.getLatitude());
-        locationValues += "|" + String.valueOf(location.getLongitude());
-        sendNotification(locationValues);
         stopHandler();
         cleanLocation();
     }

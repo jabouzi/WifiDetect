@@ -4,4 +4,5 @@
     <string name="send_location_notifications_permission_description">Allow this application to send location notifications to other applications</string>
     <string name="receive_location_notifications_permission_label">Receive location Notifications</string>
     <string name="receive_location_notifications_permission_description">Allow this application to receive location notifications from other applications</string>
+    <string name="detect_wifi">Detect Wifi</string>
 </resources>
