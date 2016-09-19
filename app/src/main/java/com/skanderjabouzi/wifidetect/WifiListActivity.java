@@ -147,10 +147,12 @@ public class WifiListActivity extends AppCompatActivity {
             }
             else
             {
-
-                String[] geolocation = extraString.split("\\|");
+                String[] wifiServiceResult = extraString.split("\\|\\|");
+                String[] wifi = wifiServiceResult[0].split("\\|");
+                String[] geolocation = wifiServiceResult[1].split("\\|");
                 location.setLatitude(Float.parseFloat(geolocation[0]));
                 location.setLongitude(Float.parseFloat(geolocation[1]));
+                Log.i("wifiServiceResult[0] : " , String.valueOf(wifiServiceResult[0]));
                 Log.i("LATITUDE : " , String.valueOf(location.getLatitude()));
                 Log.i("LONGITUDE : " , String.valueOf(location.getLongitude()));
 //                location.setCity(geolocation[2]);
